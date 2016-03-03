@@ -8,20 +8,29 @@ class Flickr {
 		$this->apiKey = $apikey;
 	} 
 	
-	public function search($query = null, $page = 1, $per_page = 10, $format = 'php_serial') { 
+	/**
+	 * 
+	 * @param string $query
+	 * @param int $page
+	 * @param int $per_page
+	 * @param string $format
+	 * @return array
+	 */
+	public function search($query = null, $page = 1, $per_page = 15, $format = 'php_serial') { 
 		$args = array(
 			'method' => 'flickr.photos.search',
 			'api_key' => $this->apiKey,
-			'text' => urlencode($query),
+			//'text' => urlencode($query),
+			'tags' => $query,
 			'page' => $page,
 			'per_page' => $per_page,
 			'format' => $format
 		);
-		$url = 'http://flickr.com/services/rest/?'; 
+		$url = 'http://flickr.com/services/rest/?';
 		$search = $url.http_build_query($args);
-		$result = $this->file_get_contents_curl($search); 
-		if ($format == 'php_serial') $result = unserialize($result); 
-		return $result; 
+		$result = $this->file_get_contents_curl($search);
+		if ($format == 'php_serial') $result = unserialize($result);
+		return $result;
 	} 
 	
 	private function file_get_contents_curl($url) {

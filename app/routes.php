@@ -13,7 +13,5 @@
 
 Route::group(array(), function() {
 	Route::get('/', 'HomeController@getIndex');
-	Route::resource('flickr', 'FlickrController');
 	Route::post('search', 'FlickrController@search');
-	//Route::controller('ajax', 'AjaxController');
 });

@@ -1,8 +1,17 @@
 $(document).ready(function(){
     
+    // Keyword
+    $("#keyword").select2({
+        tags:true,
+        minimumInputLength: 3,
+    });
+    
     // Search
     $("#btn_search").click(function(e){
         e.preventDefault();
+        // first page
+        if (e.originalEvent !== undefined)
+            $("#page").val("1");
         
         var form_data = new FormData($("#frm_search")[0]);
         
@@ -21,13 +30,20 @@ $(document).ready(function(){
     });
 });
 
+$(window).scroll(function(){
+    if ($(window).scrollTop() == $(document).height() - $(window).height()) {
+        $("#page").val( $("#page").val() * 1 + 1 );
+        $("#btn_search").trigger('click');
+    }
+});
+
 var home = home || {};
 
 home.search = {
     init : function() {
         $(app.form.msgbox).hide();
         $(app.form.class4val).remove();
-        $(app.form.tag4val).removeClass('error');
+        $(app.form.tag4val).removeClass('has-error');
     },
     success : function(response) {
         if (response.error === true) {
@@ -41,12 +57,13 @@ home.search = {
                     first_item = k;
                     idx++;
                 }
-                var frmFld = jQuery('[name=' + k + ']').closest("span");
+                var frmFld = $('[name="' + k + '"]').closest("span");
                 errMsg = response.validation[k].replace(/(<([^>]+)>)/ig, "");
-                if (!frmFld.hasClass('error')) frmFld.addClass('error');
-                frmFld.append('<span class="validation-advice">' + errMsg + '</span>');
+                if (!frmFld.hasClass('has-error')) frmFld.addClass('has-error');
+                frmFld.append('<label class="control-label" for="">' + errMsg + '</label>');
             });
-            jQuery('[name^=' + first_item + ']').focus();
+            if (first_item=="keyword[]") $('#keyword').select2('open');
+            else $('[name="' + first_item + '"]').focus();
         } else {
             $(app.form.msgbox).text("Saved").show();
             setTimeout(function() {
@@ -59,6 +76,23 @@ home.search = {
         console.log(data);
     },
     display_image : function(data) {
-        $("#image_list").html(data);
+        if ($("#page").val()=="1")
+            $("#image_list").html(data);
+        else
+            $("#image_list").append(data);
+        
+        // init Masonry
+        var $grid = $('.grid').masonry({
+            itemSelector: '.grid-item',
+            percentPosition: true,
+            columnWidth: '.grid-sizer'
+        });
+        // layout Isotope after each image loads
+        $grid.imagesLoaded().progress( function() {
+            $grid.masonry();
+        });
+        
+        // Colorbox
+        $('a.gallery').colorbox({rel:'group1'});
     },
 }

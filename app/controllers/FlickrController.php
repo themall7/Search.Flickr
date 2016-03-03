@@ -3,16 +3,7 @@
 class FlickrController extends BaseController {
 
 	/*
-	|--------------------------------------------------------------------------
-	| Default Home Controller
-	|--------------------------------------------------------------------------
-	|
-	| You may wish to use controllers instead of, or in addition to, Closure
-	| based routes. That's great! Here is an example controller method to
-	| get you started. To route to this controller, just add the route:
-	|
-	|	Route::get('/', 'HomeController@showWelcome');
-	|
+	|	Route::post('search', 'FlickrController@search');
 	*/
 
 	public function search()
@@ -23,24 +14,37 @@ class FlickrController extends BaseController {
 		// Validation
 		if (empty($input['keyword'])) {
 			$result['error'] = true;
-			$result['validation']['keyword'] = 'Type a Keyword.';
+			$result['validation']['keyword[]'] = 'Type a Keyword.';
 		}
 		
 		if ($result['error']) {
 			return Response::json($result);
 		}
 		
-		$keywrods = implode(",", array($input['keyword']));
+		$keywrods = implode(",", $input['keyword']);
 		$page = !isset($input['page']) || empty($input['page']) || $input['page']==0 ? 1 : $input['page'];
 		$flickr = new Flickr( Config::get('custom.flickr.key') );
 		$data = $flickr->search($keywrods, $page);
 		$image_tags = '';
 		foreach($data['photos']['photo'] as $photo) {
-			// the image URL becomes somthing like
 			// http://farm{farm-id}.static.flickr.com/{server-id}/{id}_{secret}.jpg
-			//echo '<img src="' . 'http://farm' . $photo["farm"] . '.static.flickr.com/' . $photo["server"] . '/' . $photo["id"] . '_' . $photo["secret"] . '.jpg">';
-			$image_tags .= '<img src="' . 'http://farm' . $photo["farm"] . '.static.flickr.com/' . $photo["server"] . '/' . $photo["id"] . '_' . $photo["secret"] . '.jpg">';
+			
+			$img = <<<EOD
+					http://farm{$photo["farm"]}.static.flickr.com/{$photo["server"]}/{$photo["id"]}_{$photo["secret"]}.jpg
+EOD;
+			$image_tags .= <<<EOD
+				<div class="grid-item">
+					<a class="gallery" href="{$img}" title="{$photo["title"]}"><img src="{$img}"></a>
+				</div>
+EOD;
 		}
+		$image_tags = <<<EOD
+			<div class="grid">
+				<div class="grid-sizer"></div>
+				{$image_tags}
+				<a class="infinite-more-link" href="/search/">More</a>
+			</div>
+EOD;
 		
 		$result['data'] = $image_tags;
 		return Response::json($result);
