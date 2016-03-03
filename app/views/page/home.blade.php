@@ -18,6 +18,6 @@
 		<div id="image_list">
 		</div>
 	</div>
-	<div id="bottom">11</div>
+	<div id="bottom"></div>
 </div>
 @stop
